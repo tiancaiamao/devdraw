@@ -764,26 +764,35 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 // NSResponder
 // ----------------------------------------------------------------
 - (void) keyDown: (NSEvent *) theEvent {
-  getkeyboard(theEvent);
+//  getkeyboard(theEvent);
   [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
 }
 
 
 - (void) deleteBackward: (id) sender {
-  const NSUInteger length = [_text length];
+  // const NSUInteger length = [_text length];
+  
+  NSLog (@"NSResponder deleteBackward");
+  kputc('\b');
 
-  if (length > 0) {
-    [_text deleteCharactersInRange: NSMakeRange(length - 1, 1)];
-    [self setNeedsDisplay: YES];
-  }
+  // if (length > 0) {
+//     [_text deleteCharactersInRange: NSMakeRange(length - 1, 1)];
+//     [self setNeedsDisplay: YES];
+//   }
 }
 
 - (void) insertNewline: (id) sender {
-  [self insertText: @"\n"];
+    NSLog (@"NSResponder insertNewline");
+
+	kputc('\n');
+	
+  // [self insertText: @"\n"];
 }
 
 - (void) insertTab: (id) sender {
-  [self insertText: @"\t"];
+    NSLog (@"NSResponder insertTab");
+	kputc('\t');
+  // [self insertText: @"\t"];
 }
 
 - (void) insertText: (id) aString {
@@ -802,10 +811,13 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 // NSTextInput
 // ----------------------------------------------------------------
 - (void) doCommandBySelector: (SEL) aSelector {
+    NSLog (@"NSTextInput doCommandBySelector");
+	
   [super doCommandBySelector: aSelector];
 }
 
 - (void) setMarkedText: (id) aString selectedRange: (NSRange) selRange {
+	  NSLog (@"NSTextInput setMarkedText");
   [self setMarkedText: aString
         selectedRange: selRange
      replacementRange: kEmptyRange];
@@ -961,7 +973,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 - (void)scrollWheel:(NSEvent*)e{ getmouse(e);}
 
 //- (void)keyDown:(NSEvent*)e{ getkeyboard(e);}
-- (void)flagsChanged:(NSEvent*)e{ getkeyboard(e);}
+//- (void)flagsChanged:(NSEvent*)e{ getkeyboard(e);}
 
 
 
@@ -1035,72 +1047,62 @@ static int keycvt[] =
 	[QZ_KP9] '9',
 };
 
-//static void
-//interpretdeadkey(NSEvent *e)
-//{
-//	static apptext *t;
-//
-//	if(t == nil)
-//		t = [apptext new];
-//	[t interpretKeyEvents:[NSArray arrayWithObject:e]];
-//}
-
-static void
-getkeyboard(NSEvent *e)
-{
-	static int omod;
-	NSString *s;
-	char c;
-	int k, m;
-	uint code;
-
-	m = [e modifierFlags];
-
-	switch([e type]){
-	case NSKeyDown:
-		s = [e characters];
-		c = [s UTF8String][0];
-
-		//interpretdeadkey(e);
-		//MLOG(@"after in getkeyboard--------------");
-
-		if(m & NSCommandKeyMask){
-			if(' '<=c && c<='~')
-				keystroke(Kcmd+c);
-			break;
-		}
-		k = 0;
-		code = [e keyCode];
-		if(code<nelem(keycvt) && keycvt[code])
-			k = keycvt[code];
-                NSLog(@"get a converted key:%d", k);
-		if(k==0)
-			break;
-		if(k>0)
-			keystroke(k);
-		else
-                  break;
-                  //keystroke([s characterAtIndex:0]);
-		break;
-
-	case NSFlagsChanged:
-		if(in.mbuttons || in.kbuttons){
-			in.kbuttons = 0;
-			if(m & NSAlternateKeyMask)
-				in.kbuttons |= 2;
-			if(m & NSCommandKeyMask)
-				in.kbuttons |= 4;
-			sendmouse();
-		}else
-		if(m&NSAlternateKeyMask && (omod&NSAlternateKeyMask)==0)
-			keystroke(Kalt);
-		break;
-
-	default:
-		panic("getkey: unexpected event type");
-	}
-	omod = m;
-}
+// static void
+// getkeyboard(NSEvent *e)
+// {
+// 	static int omod;
+// 	NSString *s;
+// 	char c;
+// 	int k, m;
+// 	uint code;
+// 
+// 	m = [e modifierFlags];
+// 
+// 	switch([e type]){
+// 	case NSKeyDown:
+// 		s = [e characters];
+// 		c = [s UTF8String][0];
+// 
+// 		//interpretdeadkey(e);
+// 		//MLOG(@"after in getkeyboard--------------");
+// 
+// 		if(m & NSCommandKeyMask){
+// 			if(' '<=c && c<='~')
+// 				keystroke(Kcmd+c);
+// 			break;
+// 		}
+// 		k = 0;
+// 		code = [e keyCode];
+// 		if(code<nelem(keycvt) && keycvt[code])
+// 			k = keycvt[code];
+//                 NSLog(@"get a converted key:%d", k);
+// 		if(k==0)
+// 			break;
+// 		if(k>0)
+// 			keystroke(k);
+// 		else
+//                   break;
+//                   //keystroke([s characterAtIndex:0]);
+// 		break;
+// 
+// 	case NSFlagsChanged:
+// 		if(in.mbuttons || in.kbuttons){
+// 			in.kbuttons = 0;
+// 			if(m & NSAlternateKeyMask)
+// 				in.kbuttons |= 2;
+// 			if(m & NSCommandKeyMask)
+// 				in.kbuttons |= 4;
+// 			sendmouse();
+// 		}else
+// 		if(m&NSAlternateKeyMask && (omod&NSAlternateKeyMask)==0)
+// 			keystroke(Kalt);
+// 		break;
+// 
+// 	default:
+// 		panic("getkey: unexpected event type");
+// 	}
+// 	omod = m;
+// }
 
 /*
  * Devdraw does not use NSTrackingArea, that often
