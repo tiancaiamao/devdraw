@@ -269,7 +269,7 @@ attachscreen(char *label, char *winsize)
 @interface contentview : NSView <NSTextInputClient> {
   NSRange _markedRange;
   NSRange _selectedRange;
-  NSMutableAttributedString *_text;
+//  NSMutableAttributedString *_text;
 }
 @end
 
@@ -673,18 +673,19 @@ static void updatecursor(void);
 static const NSRange kEmptyRange = {NSNotFound, 0};
 
 - (void) dealloc {
-  [_text release];
+//  [_text release];
   [super dealloc];
 }
 
 - (void) updateWithDefaultTextAttributes {
-  const NSRange entireRange = NSMakeRange(0, [_text length]);
-
-  [_text removeAttribute: NSFontAttributeName
-                   range: entireRange];
-  [_text addAttribute: NSFontAttributeName
-                value: [NSFont userFontOfSize: 18.0f]
-                range: entireRange];
+//   const NSRange entireRange = NSMakeRange(0, [_text length]);
+// 
+//   [_text removeAttribute: NSFontAttributeName
+//                    range: entireRange];
+//   [_text addAttribute: NSFontAttributeName
+//                 value: [NSFont userFontOfSize: 18.0f]
+//                 range: entireRange];
+// 
 }
 
 
@@ -694,17 +695,17 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 // ----------------------------------------------------------------
 - (void) removeMarkedText {
   if (_markedRange.location != NSNotFound) {
-    if (NSMaxRange(_markedRange) <= [_text length])
-      [_text deleteCharactersInRange: _markedRange];
+//    if (NSMaxRange(_markedRange) <= [_text length])
+//      [_text deleteCharactersInRange: _markedRange];
     _markedRange = _selectedRange = kEmptyRange;
   }
 }
 
 - (void) appendCharacters: (id) aString {
   if ([aString isKindOfClass: [NSAttributedString class]]) {
-    [_text appendAttributedString: aString];
+//    [_text appendAttributedString: aString];
   } else {
-    [[_text mutableString] appendString: aString];
+//    [[_text mutableString] appendString: aString];
   }
 }
 
@@ -714,27 +715,27 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 {
   NSRange replacementRange = aRange;
 
-  if (replacementRange.location == NSNotFound) {
-    replacementRange.location = [_text length];
-    replacementRange.length = 0;
-  }
-  NSAssert2(
-    NSMaxRange(replacementRange) <= [_text length],
-    @"Out of bounds: %@ for length %u",
-    NSStringFromRange(replacementRange),
-    [_text length]);
+//  if (replacementRange.location == NSNotFound) {
+//    replacementRange.location = [_text length];
+//    replacementRange.length = 0;
+//  }
+  // NSAssert2(
+  //   NSMaxRange(replacementRange) <= [_text length],
+  //   @"Out of bounds: %@ for length %u",
+  //   NSStringFromRange(replacementRange),
+  //   [_text length]);
 
-  if ([aString isKindOfClass: [NSAttributedString class]]) {
-    [_text replaceCharactersInRange: replacementRange
-               withAttributedString: aString];
-  } else {
-    [_text replaceCharactersInRange: replacementRange
-                         withString: aString];
-  }
+  // if ([aString isKindOfClass: [NSAttributedString class]]) {
+  //   [_text replaceCharactersInRange: replacementRange
+  //              withAttributedString: aString];
+  // } else {
+  //   [_text replaceCharactersInRange: replacementRange
+  //                        withString: aString];
+  // }
 
-  if (effectiveRange != NULL) {
-    *effectiveRange = NSMakeRange(replacementRange.location, [aString length]);
-  }
+  // if (effectiveRange != NULL) {
+  //   *effectiveRange = NSMakeRange(replacementRange.location, [aString length]);
+  // }
 }
 
 /**
@@ -765,6 +766,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 // ----------------------------------------------------------------
 - (void) keyDown: (NSEvent *) theEvent {
 //  getkeyboard(theEvent);
+	 LOG (@"NSResponder ");
   [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
 }
 
@@ -772,7 +774,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 - (void) deleteBackward: (id) sender {
   // const NSUInteger length = [_text length];
   
-  NSLog (@"NSResponder deleteBackward");
+  LOG (@"NSResponder deleteBackward");
   kputc('\b');
 
   // if (length > 0) {
@@ -781,8 +783,13 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 //   }
 }
 
+- (void) deleteForward: (id) sender {  
+  LOG (@"NSResponder deleteForward");
+  kputc(0x7f);
+}
+
 - (void) insertNewline: (id) sender {
-    NSLog (@"NSResponder insertNewline");
+    LOG (@"NSResponder insertNewline");
 
 	kputc('\n');
 	
@@ -790,7 +797,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 }
 
 - (void) insertTab: (id) sender {
-    NSLog (@"NSResponder insertTab");
+    LOG (@"NSResponder insertTab");
 	kputc('\t');
   // [self insertText: @"\t"];
 }
@@ -800,24 +807,45 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
   int len = [(NSString *)aString length];
   int i;	
 
-  NSLog (@"NSResponder insertText '%@'\tlen = %d", aString, len);
+  LOG (@"NSResponder insertText '%@'\tlen = %d", aString, len);
 
   [self appendCharacters: aString];
   [self setNeedsDisplay: YES];
 }
 
+- (void)moveBackward:(id)sender {
+	kputc(Kleft);
+}
+
+- (void)moveForward:(id)sender {
+	kputc(Kright);
+}
+
+- (void)moveDown:(id)sender {
+		LOG (@"NSResponder moveDown");
+	kputc(Kdown);
+}
+
+- (void)moveToBeginningOfLine:(id)sender {
+	LOG (@"NSResponder moveToBeginningOfLine");
+}
+
+- (void)moveToEndOfLine:(id)sender {
+	LOG (@"NSResponder moveToEndOfLine");
+	kputc(Kend);
+}
 
 // ----------------------------------------------------------------
 // NSTextInput
 // ----------------------------------------------------------------
 - (void) doCommandBySelector: (SEL) aSelector {
-    NSLog (@"NSTextInput doCommandBySelector");
+    LOG (@"NSTextInput doCommandBySelector");
 	
   [super doCommandBySelector: aSelector];
 }
 
 - (void) setMarkedText: (id) aString selectedRange: (NSRange) selRange {
-	  NSLog (@"NSTextInput setMarkedText");
+	  LOG (@"NSTextInput setMarkedText");
   [self setMarkedText: aString
         selectedRange: selRange
      replacementRange: kEmptyRange];
@@ -870,7 +898,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
   int len = [(NSString *)aString length];
   int i;	
 
-  NSLog (@"insertText '%@'\tlen = %d", aString, len);
+  LOG (@"insertText '%@'\tlen = %d", aString, len);
   for(int i=0; i<len; i++) {
     int c = [aString characterAtIndex:i];
     kputc(c);
@@ -909,7 +937,8 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 }
 
 - (NSAttributedString *) attributedString {
-  return _text;
+  // return _text;
+	return NULL;
 }
 
 /*
@@ -948,7 +977,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 	[super initWithFrame:r];
 	[self setAcceptsTouchEvents:YES];
 	[self setHidden:YES];		/* to avoid early "drawRect" call */
-        _text = [[NSMutableAttributedString alloc] init];
+        // _text = [[NSMutableAttributedString alloc] init];
         _selectedRange = _markedRange = kEmptyRange;
 	return self;
 }
@@ -973,7 +1002,7 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
 - (void)scrollWheel:(NSEvent*)e{ getmouse(e);}
 
 //- (void)keyDown:(NSEvent*)e{ getkeyboard(e);}
-//- (void)flagsChanged:(NSEvent*)e{ getkeyboard(e);}
+- (void)flagsChanged:(NSEvent*)e{ getkeyboard(e);}
 
 
 
@@ -1047,19 +1076,19 @@ static int keycvt[] =
 	[QZ_KP9] '9',
 };
 
-// static void
-// getkeyboard(NSEvent *e)
-// {
-// 	static int omod;
-// 	NSString *s;
-// 	char c;
-// 	int k, m;
-// 	uint code;
-// 
-// 	m = [e modifierFlags];
-// 
-// 	switch([e type]){
-// 	case NSKeyDown:
+static void
+getkeyboard(NSEvent *e)
+{
+	static int omod;
+	NSString *s;
+	char c;
+	int k, m;
+	uint code;
+
+	m = [e modifierFlags];
+
+	switch([e type]){
+	// case NSKeyDown:
 // 		s = [e characters];
 // 		c = [s UTF8String][0];
 // 
@@ -1084,25 +1113,30 @@ static int keycvt[] =
 //                   break;
 //                   //keystroke([s characterAtIndex:0]);
 // 		break;
-// 
-// 	case NSFlagsChanged:
-// 		if(in.mbuttons || in.kbuttons){
-// 			in.kbuttons = 0;
-// 			if(m & NSAlternateKeyMask)
-// 				in.kbuttons |= 2;
-// 			if(m & NSCommandKeyMask)
-// 				in.kbuttons |= 4;
-// 			sendmouse();
-// 		}else
-// 		if(m&NSAlternateKeyMask && (omod&NSAlternateKeyMask)==0)
-// 			keystroke(Kalt);
-// 		break;
-// 
-// 	default:
-// 		panic("getkey: unexpected event type");
-// 	}
-// 	omod = m;
-// }
+
+	case NSFlagsChanged:
+		if(in.mbuttons || in.kbuttons){
+			in.kbuttons = 0;
+			if (m & NSAlternateKeyMask)
+				in.kbuttons |= 2;
+			if(m & NSCommandKeyMask) {
+				if (in.kbuttons & 2) {
+					in.kbuttons |= 1;
+				} else {
+					in.kbuttons |= 4;
+				}
+			}
+			sendmouse();
+		}else
+			if(m&NSAlternateKeyMask && (omod&NSAlternateKeyMask)==0)
+			keystroke(Kalt);
+		break;
+
+	default:
+		panic("getkey: unexpected event type");
+	}
+	omod = m;
+}
 
 /*
  * Devdraw does not use NSTrackingArea, that often
